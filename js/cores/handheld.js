@@ -14,10 +14,11 @@ export const handheldCore = {
   width: 160,
   height: 144,
 
-  async init(canvas) {
+  async init(canvas, hooks = {}) {
     await WasmBoy.config(
       {
         headless: false,
+        updateGraphicsCallback: () => hooks.onFrame && hooks.onFrame(),
         isAudioEnabled: true,
         gameboyFrameRate: 60,
         isGbcEnabled: true,
@@ -38,6 +39,19 @@ export const handheldCore = {
 
   async play() {
     await WasmBoy.play();
+  },
+
+  // Muss nach einer Nutzereingabe aufgerufen werden, sonst bleibt der Audio-Kontext auf Mobilgeräten stumm/pausiert.
+  unlockAudio() {
+    try {
+      WasmBoy.resumeAudioContext();
+    } catch (e) {
+      console.warn('Audio-Freigabe fehlgeschlagen', e);
+    }
+  },
+
+  getFps() {
+    return configured ? WasmBoy.getFPS() : 0;
   },
 
   async pause() {

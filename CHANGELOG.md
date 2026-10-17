@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2
+
+- Diagnose-Anzeige im Spiel (Menü → „Diagnose einblenden“): Bilder pro Sekunde und Zeit von Tastendruck bis zum nächsten Bild
+- Audio wird beim ersten Tippen oder Drücken freigegeben
+
 ## v0.1.1
 
 - Konsolen umbenannt: „Handheld“ und „Cube“ statt Markennamen

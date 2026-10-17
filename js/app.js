@@ -267,6 +267,7 @@ async function renderGame(romId) {
       </div>
       <div class="screen-wrap">
         <div class="game-canvas-holder"><canvas id="game-canvas" width="${c.core.width}" height="${c.core.height}"></canvas></div>
+        <div class="diag hidden" id="diag"></div>
       </div>
       <div class="controls ${showPad ? 'show' : ''}" id="controls">
         <div class="pad-row">
@@ -296,15 +297,40 @@ async function renderGame(romId) {
 
   // Eingabe und Core starten
   const canvas = document.getElementById('game-canvas');
+  const diagEl = document.getElementById('diag');
+
+  // Diagnose: Zeit von Tastendruck bis zum nächsten gerenderten Bild
+  const diag = { pendingInputAt: null, lastLatency: null, frames: 0, wasAnyPressed: false, timer: null };
+
   const input = createInput({
-    onChange: (state) => c.core.setJoypad(state),
+    onChange: (state) => {
+      const anyPressed = Object.values(state).some(Boolean);
+      if (anyPressed && !diag.wasAnyPressed) diag.pendingInputAt = performance.now();
+      diag.wasAnyPressed = anyPressed;
+      c.core.setJoypad(state);
+    },
   });
   input.start();
   input.bindPadButtons(document.getElementById('controls'));
-  currentSession = { romId, core: c.core, input, canvas, consoleId: rom.console };
+
+  // Audio beim ersten Tippen/Drücken freigeben (Browser-Vorgabe)
+  const unlock = () => c.core.unlockAudio();
+  window.addEventListener('pointerdown', unlock, { once: true, capture: true });
+  window.addEventListener('keydown', unlock, { once: true, capture: true });
+
+  currentSession = { romId, core: c.core, input, canvas, consoleId: rom.console, diag, diagEl, unlock };
+  if (isDiagOn()) startDiag();
 
   try {
-    await c.core.init(canvas);
+    await c.core.init(canvas, {
+      onFrame: () => {
+        diag.frames++;
+        if (diag.pendingInputAt !== null) {
+          diag.lastLatency = performance.now() - diag.pendingInputAt;
+          diag.pendingInputAt = null;
+        }
+      },
+    });
     await c.core.load(new Uint8Array(rom.bytes));
     await db.touchRom(romId);
   } catch (err) {
@@ -313,10 +339,54 @@ async function renderGame(romId) {
   }
 }
 
+// ---------- Diagnose ----------
+
+function isDiagOn() {
+  try {
+    return localStorage.getItem('rb-diag') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setDiagOn(on) {
+  try {
+    localStorage.setItem('rb-diag', on ? '1' : '0');
+  } catch {
+    /* Speicher nicht verfügbar – nur für diese Sitzung */
+  }
+}
+
+function startDiag() {
+  if (!currentSession) return;
+  const s = currentSession;
+  s.diagEl.classList.remove('hidden');
+  let lastFrames = s.diag.frames;
+  let lastTime = performance.now();
+  s.diag.timer = setInterval(() => {
+    const now = performance.now();
+    const framesNow = s.diag.frames;
+    const fps = ((framesNow - lastFrames) * 1000) / (now - lastTime);
+    lastFrames = framesNow;
+    lastTime = now;
+    const lat = s.diag.lastLatency === null ? '–' : Math.round(s.diag.lastLatency) + ' ms';
+    s.diagEl.textContent = `Bilder/s: ${fps.toFixed(0)} · Eingabe→Bild: ${lat} · Core: ${s.core.getFps ? s.core.getFps() : '?'} fps`;
+  }, 500);
+}
+
+function stopDiag() {
+  if (!currentSession) return;
+  clearInterval(currentSession.diag.timer);
+  currentSession.diagEl.classList.add('hidden');
+}
+
 async function endSession() {
   if (!currentSession) return;
   const s = currentSession;
   currentSession = null;
+  clearInterval(s.diag.timer);
+  window.removeEventListener('pointerdown', s.unlock, { capture: true });
+  window.removeEventListener('keydown', s.unlock, { capture: true });
   s.input.stop();
   try {
     await s.core.stop();
@@ -366,6 +436,7 @@ async function openMenu(rom) {
       }).join('')}
     </div>
     <div class="row">
+      <button class="btn" id="m-diag">Diagnose ${isDiagOn() ? 'ausblenden' : 'einblenden'}</button>
       <button class="btn" id="m-reset">Neustart</button>
       <button class="btn" id="m-switch">Spiel wechseln</button>
       <button class="btn" id="m-library">Zur Bibliothek</button>
@@ -379,6 +450,13 @@ async function openMenu(rom) {
     closeSheet();
     await currentSession?.core.load(new Uint8Array(rom.bytes));
     toast('Neustart');
+  };
+  el.querySelector('#m-diag').onclick = () => {
+    const on = !isDiagOn();
+    setDiagOn(on);
+    if (on) startDiag();
+    else stopDiag();
+    closeSheet();
   };
   el.querySelector('#m-switch').onclick = () => openSwitcher(rom);
   el.querySelector('#m-library').onclick = () => {

@@ -10,6 +10,10 @@ export const cubeCore = {
   height: 480,
 
   async init() {},
+  unlockAudio() {},
+  getFps() {
+    return 0;
+  },
 
   async load() {
     throw new Error('Cube-Core ist noch nicht verfügbar.');
