@@ -46,6 +46,16 @@ Der Core ist über ein kleines Interface angebunden (`init`, `load`, `setJoypad`
 
 mGBA nutzt Threads. Dafür braucht die Seite cross-origin isolation (`COOP`/`COEP`). GitHub Pages kann diese Header nicht setzen, deshalb liefert `sw.js` sie aus. Beim allerersten Besuch lädt die Seite deshalb einmal neu.
 
+## Auf dem Fernseher anzeigen
+
+Das Spiel läuft im Browser und lässt sich auf den Fernseher übertragen. Gesteuert wird weiterhin am Handy.
+
+- **Android (Chrome):** Menü (⋮) → „Übertragen“ bzw. „Cast“ wählen und den Fernseher oder Google Chromecast auswählen. Dabei wird der Browser-Tab übertragen.
+- **Google TV / Chromecast:** Funktioniert mit Android wie oben. Vom iPhone aus unterstützt Chrome das nur eingeschränkt.
+- **iPhone / iPad:** Bildschirmspiegelung über das Kontrollzentrum auf ein Apple TV (AirPlay). Mit Safari ist das der zuverlässigere Weg.
+
+Bei der Übertragung kann es zu einer kleinen Verzögerung kommen. Das Bild auf dem Fernseher kann also etwas später erscheinen als auf dem Handy.
+
 ## Rechtliches zu ROMs
 
 ROMs und Spielstände gehören nicht ins Repository. Die `.gitignore` schließt sie aus. Du fügst deine eigenen Dateien lokal in der App hinzu, und sie verlassen dein Gerät nicht.
