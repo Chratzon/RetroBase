@@ -2,10 +2,10 @@
 // Stores:
 //   roms   – Schlüssel: id (SHA-256 der ROM-Bytes). Felder: id, console, title, fileName, size, bytes, addedAt, lastPlayed
 //   states – Schlüssel: "<romId>:<slot>". Felder: key, romId, slot, savedAt, state
-// Battery-Saves (SRAM) verwaltet der Core (WasmBoy) in seinem eigenen Speicher.
+//   saves  – Schlüssel: romId. Felder: romId, data (Battery-Save/SRAM als Bytes)
 
 const DB_NAME = 'retrobase';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise = null;
 
@@ -22,6 +22,9 @@ function open() {
         if (!db.objectStoreNames.contains('states')) {
           const states = db.createObjectStore('states', { keyPath: 'key' });
           states.createIndex('romId', 'romId', { unique: false });
+        }
+        if (!db.objectStoreNames.contains('saves')) {
+          db.createObjectStore('saves', { keyPath: 'romId' });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -95,6 +98,7 @@ export async function touchRom(id) {
 
 export async function deleteRom(id) {
   await run('roms', 'readwrite', (store) => store.delete(id));
+  await run('saves', 'readwrite', (store) => store.delete(id));
   const states = await listStates(id);
   await Promise.all(states.map((s) => deleteState(s.key)));
 }
@@ -118,6 +122,17 @@ export async function putState(romId, slot, state) {
 
 export async function deleteState(key) {
   await run('states', 'readwrite', (store) => store.delete(key));
+}
+
+// ---------- Battery-Saves (SRAM) ----------
+
+export async function getSave(romId) {
+  const rec = await getOne('saves', romId);
+  return rec ? rec.data : null;
+}
+
+export async function putSave(romId, data) {
+  await run('saves', 'readwrite', (store) => store.put({ romId, data }));
 }
 
 // ---------- Hilfsfunktionen ----------

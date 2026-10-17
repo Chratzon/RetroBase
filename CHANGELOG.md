@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0
+
+- Game-Boy-Core ausgetauscht: mGBA 2.5.1 (MPL-2.0) statt WasmBoy. WasmBoy ist entfernt.
+- Battery-Saves (SRAM) werden pro Spiel in IndexedDB gespeichert und beim nächsten Start wiederhergestellt
+- Service Worker liefert die Header für cross-origin isolation aus (nötig für mGBA auf GitHub Pages). Die Seite lädt beim ersten Besuch einmal neu.
+
 ## v0.1.4
 
 - Service Worker lädt Updates zuerst aus dem Netz (Cache nur noch als Offline-Fallback)

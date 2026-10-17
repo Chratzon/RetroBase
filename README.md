@@ -37,12 +37,14 @@ sw.js                   Service Worker (App-Shell offline)
 js/app.js               Routing, Startscreen, Bibliothek, Spielansicht, Menüs
 js/db.js                IndexedDB: ROMs und Spielstände
 js/input.js             Eingabe: Tastatur, On-Screen-Tasten, Gamepad
-js/cores/handheld.js    Handheld-Core (Adapter um WasmBoy)
+js/cores/handheld.js    Handheld-Core (Adapter um mGBA)
 js/cores/cube.js         Cube-Platzhalter
-vendor/wasmboy/         Vendored WasmBoy 0.7.1 (GPL-3.0-or-later, siehe LICENSE)
+vendor/mgba/           Vendored mGBA 2.5.1 (MPL-2.0, siehe LICENSE)
 ```
 
-Der Core ist über ein kleines Interface angebunden (`init`, `load`, `setJoypad`, `createState`, `restoreState`, `stop`). Er lässt sich später austauschen, z. B. gegen einen Gambatte- oder mGBA-Build.
+Der Core ist über ein kleines Interface angebunden (`init`, `load`, `setJoypad`, `createState`, `restoreState`, `stop`). Er lässt sich später austauschen.
+
+mGBA nutzt Threads. Dafür braucht die Seite cross-origin isolation (`COOP`/`COEP`). GitHub Pages kann diese Header nicht setzen, deshalb liefert `sw.js` sie aus. Beim allerersten Besuch lädt die Seite deshalb einmal neu.
 
 ## Rechtliches zu ROMs
 
@@ -50,14 +52,16 @@ ROMs und Spielstände gehören nicht ins Repository. Die `.gitignore` schließt 
 
 ## Bekannte Grenzen
 
-- Der Game-Boy-Core basiert auf WasmBoy, das laut Upstream noch nicht vollständig genau ist. Einzelne Spiele können Fehler zeigen.
+- Der Game-Boy-Core ist mGBA. Die Genauigkeit entspricht dem Upstream-Projekt. Einzelne Spiele können trotzdem Fehler zeigen.
 - Audio startet erst nach einer Eingabe (Browser-Vorgabe).
 - Auf iOS sind Hintergrundbetrieb und Speicher eingeschränkter als auf Android.
 - Der Cube-Core existiert noch nicht. Ein brauchbarer Browser-Emulator dafür ist eine eigene, große Aufgabe.
 
 ## Lizenz
 
-RetroBase steht unter der **GNU General Public License v3.0 (GPL-3.0)**, siehe `LICENSE`. Das ist nötig, weil der mitgelieferte WasmBoy-Core (`vendor/wasmboy/`) unter GPL-3.0-or-later steht. WasmBoy bleibt unter seiner eigenen Lizenz (`vendor/wasmboy/LICENSE`).
+RetroBase steht unter der **GNU General Public License v3.0 (GPL-3.0)**, siehe `LICENSE`.
+
+Der mitgelieferte Game-Boy-Core mGBA (`vendor/mgba/`) steht unter der **Mozilla Public License 2.0 (MPL-2.0)**, siehe `vendor/mgba/LICENSE`. Die MPL-Dateien bleiben unter der MPL. Sie sind mit der GPL-3.0 dieses Projekts kombinierbar.
 
 ## Namensgebung
 

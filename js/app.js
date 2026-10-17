@@ -334,7 +334,7 @@ async function renderGame(romId) {
         }
       },
     });
-    await c.core.load(new Uint8Array(rom.bytes));
+    await c.core.load(new Uint8Array(rom.bytes), romId);
     await db.touchRom(romId);
   } catch (err) {
     console.error(err);
@@ -364,16 +364,8 @@ function startDiag() {
   if (!currentSession) return;
   const s = currentSession;
   s.diagEl.classList.remove('hidden');
-  let lastFrames = s.diag.frames;
-  let lastTime = performance.now();
   s.diag.timer = setInterval(() => {
-    const now = performance.now();
-    const framesNow = s.diag.frames;
-    const fps = ((framesNow - lastFrames) * 1000) / (now - lastTime);
-    lastFrames = framesNow;
-    lastTime = now;
-    const lat = s.diag.lastLatency === null ? '–' : Math.round(s.diag.lastLatency) + ' ms';
-    s.diagEl.textContent = `Bilder/s: ${fps.toFixed(0)} · Eingabe→Bild: ${lat} · Drücke: ${s.diag.presses} · Core: ${s.core.getFps ? s.core.getFps() : '?'} fps`;
+    s.diagEl.textContent = `Erkannte Tastendrücke: ${s.diag.presses}`;
   }, 500);
 }
 
@@ -451,7 +443,7 @@ async function openMenu(rom) {
   el.querySelectorAll('[data-load]').forEach((b) => (b.onclick = () => loadSlot(rom, Number(b.dataset.load))));
   el.querySelector('#m-reset').onclick = async () => {
     closeSheet();
-    await currentSession?.core.load(new Uint8Array(rom.bytes));
+    await currentSession?.core.load(new Uint8Array(rom.bytes), rom.id);
     toast('Neustart');
   };
   el.querySelector('#m-diag').onclick = () => {
@@ -540,4 +532,17 @@ render();
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service Worker', err));
+  // Der Emulator braucht cross-origin isolation. GitHub Pages setzt die Header nicht, der Service Worker
+  // liefert sie aus. Sobald er die Seite übernimmt, muss sie einmal neu geladen werden (höchstens einmal pro Tab).
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (self.crossOriginIsolated) return;
+    try {
+      if (sessionStorage.getItem('rb-coi-reload')) return;
+      sessionStorage.setItem('rb-coi-reload', '1');
+    } catch {
+      /* ohne Speicher lieber nicht in eine Schleife laufen */
+      return;
+    }
+    location.reload();
+  });
 }

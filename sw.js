@@ -1,8 +1,12 @@
-// Service Worker: App-Shell offline verfügbar machen. Benutzerdaten (ROMs, Spielstände)
-// liegen in IndexedDB und werden hier nicht berührt.
+// Service Worker: App-Shell offline verfügbar machen und cross-origin isolation herstellen.
+// Benutzerdaten (ROMs, Spielstände, Battery-Saves) liegen in IndexedDB und werden hier nicht berührt.
 // Bei jeder Version CACHE_VERSION erhöhen, damit alte Dateien ersetzt werden.
+//
+// Warum die Header? mGBA nutzt Threads (SharedArrayBuffer). Dafür braucht die Seite
+// Cross-Origin-Opener-Policy und Cross-Origin-Embedder-Policy. GitHub Pages kann keine
+// eigenen Header setzen, deshalb ergänzt der Service Worker sie bei jeder eigenen Antwort.
 
-const CACHE_VERSION = 'retrobase-0.1.4';
+const CACHE_VERSION = 'retrobase-0.2.0';
 const SHELL = [
   './',
   './index.html',
@@ -14,7 +18,8 @@ const SHELL = [
   './js/input.js',
   './js/cores/handheld.js',
   './js/cores/cube.js',
-  './vendor/wasmboy/wasmboy.esm.js',
+  './vendor/mgba/mgba.js',
+  './vendor/mgba/mgba.wasm',
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,6 +37,16 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Antwort mit den Headern für cross-origin isolation versehen.
+function isolate(res) {
+  if (!res || res.type !== 'basic') return res;
+  const headers = new Headers(res.headers);
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
 // Netz zuerst: Updates erscheinen beim nächsten Laden. Offline greift der Cache.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -46,8 +61,10 @@ self.addEventListener('fetch', (event) => {
           const copy = res.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
         }
-        return res;
+        return isolate(res);
       })
-      .catch(() => caches.match(req))
+      .catch(() =>
+        caches.match(req).then((cached) => (cached ? isolate(cached) : Response.error()))
+      )
   );
 });
