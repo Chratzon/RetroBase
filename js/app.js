@@ -270,16 +270,6 @@ function setPref(key, on) {
 
 // ---------- Spielansicht ----------
 
-async function toggleFullscreen() {
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
-  } catch (err) {
-    console.warn(err);
-    toast('Vollbild ist hier nicht verfügbar');
-  }
-}
-
 async function renderGame(romId) {
   const rom = await db.getRom(romId);
   if (!rom) {
@@ -291,9 +281,7 @@ async function renderGame(romId) {
   document.body.classList.add('in-game');
 
   overlay.hidden = true;
-  const fsButton = document.fullscreenEnabled
-    ? '<button class="btn" id="fs" title="Vollbild" aria-label="Vollbild">⛶</button>'
-    : '';
+  const fsButton = '<button class="btn" id="fs" title="Vollbild" aria-label="Vollbild">⛶</button>';
   setView(`
     <div class="game${coarse ? '' : ' controls-hidden'}" id="game">
       <div class="game-bar">
@@ -343,18 +331,32 @@ async function renderGame(romId) {
 
   const cleanups = [];
 
-  // Vollbild
+  // Vollbild: blendet die obere Leiste aus. Wo der Browser es erlaubt, wird zusätzlich echtes Vollbild genutzt.
+  // Auf dem iPhone fehlt die Vollbild-Schnittstelle, dort wirkt nur der Leisten-Modus.
   const fsBtn = document.getElementById('fs');
-  if (fsBtn) {
-    fsBtn.onclick = toggleFullscreen;
-    const syncFs = () => {
-      const on = !!document.fullscreenElement;
-      fsBtn.classList.toggle('active', on);
-      fsBtn.title = on ? 'Vollbild beenden' : 'Vollbild';
-    };
-    document.addEventListener('fullscreenchange', syncFs);
-    cleanups.push(() => document.removeEventListener('fullscreenchange', syncFs));
-  }
+  const syncFs = () => {
+    const on = gameEl.classList.contains('immersive');
+    fsBtn.classList.toggle('active', on);
+    fsBtn.title = on ? 'Vollbild beenden' : 'Vollbild';
+  };
+  const setImmersive = async (on) => {
+    gameEl.classList.toggle('immersive', on);
+    try {
+      if (on && document.fullscreenEnabled && !document.fullscreenElement) await document.documentElement.requestFullscreen();
+      if (!on && document.fullscreenElement) await document.exitFullscreen();
+    } catch (err) {
+      console.warn(err);
+    }
+    syncFs();
+  };
+  fsBtn.onclick = () => setImmersive(!gameEl.classList.contains('immersive'));
+  // Wird das Vollbild über den Browser beendet (z. B. Zurück-Geste), auch den Leisten-Modus zurücksetzen
+  const onFsChange = () => {
+    if (!document.fullscreenElement && gameEl.classList.contains('immersive')) gameEl.classList.remove('immersive');
+    syncFs();
+  };
+  document.addEventListener('fullscreenchange', onFsChange);
+  cleanups.push(() => document.removeEventListener('fullscreenchange', onFsChange));
 
   // Ton stumm schalten (bleibt über Spiele hinweg erhalten)
   let muted = getPref('rb-mute', false);

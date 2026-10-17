@@ -210,13 +210,17 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
   align-items: center;
   gap: 8px 8px;
   padding: 6px 12px calc(10px + var(--safe-bottom));
+  position: relative;
+  grid-template-rows: auto 1fr;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
 }
 .screen-wrap {
   grid-area: screen;
-  align-self: stretch;
+  align-self: start;
+  width: 100%;
+  aspect-ratio: 10 / 9;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -280,6 +284,29 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 
 /* Steuerung ausgeblendet (z. B. Tastatur oder Controller): Bild nutzt die volle Fläche */
 .game.controls-hidden .ctl { display: none; }
+.game.controls-hidden .play { grid-template-rows: 1fr; }
+.game.controls-hidden .screen-wrap { align-self: stretch; aspect-ratio: auto; }
+
+/* Vollbild-Modus: keine obere Leiste, nur ein kleiner Knopf-Rest schwebt über dem Bild */
+.game.immersive .game-bar {
+  position: absolute;
+  top: calc(var(--safe-top) + 6px);
+  right: 6px;
+  left: auto;
+  z-index: 5;
+  padding: 0;
+  gap: 6px;
+  background: transparent;
+}
+.game.immersive .game-bar .title,
+.game.immersive #exit,
+.game.immersive #switch { display: none; }
+.game.immersive .game-bar .btn {
+  background: rgba(20, 22, 28, 0.45);
+  color: #fff;
+  opacity: 0.8;
+}
+.game.immersive .game-bar .btn.active { background: var(--accent); color: #0b0d12; }
 
 /* Querformat: Kreuz links, A/B rechts, Select/Start/Ton darunter, Bild dazwischen */
 @media (orientation: landscape) {
@@ -291,6 +318,7 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
       "left screen pills";
     padding: 4px 12px calc(6px + var(--safe-bottom));
   }
+  .screen-wrap { align-self: stretch; aspect-ratio: auto; }
   .dpad-wrap { align-self: center; }
   .ab { align-self: end; justify-self: center; }
   .pills { align-self: start; }
@@ -299,7 +327,7 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 /* Querformat auf niedrigen Bildschirmen: Steuerung halbtransparent über dem Bild */
 @media (orientation: landscape) and (max-height: 500px) {
   .play { display: block; padding: 0; }
-  .screen-wrap { position: absolute; inset: 0; }
+  .screen-wrap { position: absolute; inset: 0; aspect-ratio: auto; width: auto; }
   .play > .ctl { position: absolute; opacity: 0.6; }
   .dpad-wrap { left: 10px; bottom: 10px; }
   .ab { right: 10px; bottom: 10px; justify-self: auto; align-self: auto; }
@@ -366,7 +394,6 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 }
 
 /* Diagnose-Anzeige */
-.screen-wrap { position: relative; }
 .diag {
   position: absolute;
   top: 14px;

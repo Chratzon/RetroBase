@@ -6,10 +6,11 @@
 - Battery-Saves (SRAM) werden pro Spiel in IndexedDB gespeichert und beim nächsten Start wiederhergestellt
 - Automatischer Speicherstand alle 5 Minuten, im Menü als „Automatisch“ ladbar (getrennt von den Slots 1–3)
 - Ton-Taste (Stummschalten) zwischen Select und Start
-- Vollbild-Taste in der Leiste (auf Geräten, die Vollbild unterstützen)
+- Vollbild-Taste blendet die obere Leiste aus. Ein kleiner Rest mit Menü bleibt über dem Bild. Echtes Vollbild nutzt der Browser, wo er es erlaubt
 - Steuerung ein- und ausblenden. Bei Tastatur oder Controller blendet sie sich automatisch aus (im Menü abschaltbar)
 - Ein Finger kann vom Steuerkreuz auf die nächste Taste rutschen, ohne abzuheben
 - Querformat: Steuerkreuz links, A/B rechts, Bild in der Mitte. Auf niedrigen Bildschirmen liegt die Steuerung halbtransparent über dem Bild
+- Hochformat: Das Bild sitzt oben, die Steuerung nutzt den Platz darunter
 - Service Worker liefert die Header für cross-origin isolation aus (nötig für mGBA auf GitHub Pages). Die Seite lädt beim ersten Besuch einmal neu.
 
 ## v0.1.4
