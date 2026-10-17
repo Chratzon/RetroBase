@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3
+
+- Diagnose zählt zusätzlich die erkannten Tastendrücke
+
 ## v0.1.2
 
 - Diagnose-Anzeige im Spiel (Menü → „Diagnose einblenden“): Bilder pro Sekunde und Zeit von Tastendruck bis zum nächsten Bild

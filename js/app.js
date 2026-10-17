@@ -300,12 +300,15 @@ async function renderGame(romId) {
   const diagEl = document.getElementById('diag');
 
   // Diagnose: Zeit von Tastendruck bis zum nächsten gerenderten Bild
-  const diag = { pendingInputAt: null, lastLatency: null, frames: 0, wasAnyPressed: false, timer: null };
+  const diag = { pendingInputAt: null, lastLatency: null, frames: 0, presses: 0, wasAnyPressed: false, timer: null };
 
   const input = createInput({
     onChange: (state) => {
       const anyPressed = Object.values(state).some(Boolean);
-      if (anyPressed && !diag.wasAnyPressed) diag.pendingInputAt = performance.now();
+      if (anyPressed && !diag.wasAnyPressed) {
+        diag.pendingInputAt = performance.now();
+        diag.presses++;
+      }
       diag.wasAnyPressed = anyPressed;
       c.core.setJoypad(state);
     },
@@ -370,7 +373,7 @@ function startDiag() {
     lastFrames = framesNow;
     lastTime = now;
     const lat = s.diag.lastLatency === null ? '–' : Math.round(s.diag.lastLatency) + ' ms';
-    s.diagEl.textContent = `Bilder/s: ${fps.toFixed(0)} · Eingabe→Bild: ${lat} · Core: ${s.core.getFps ? s.core.getFps() : '?'} fps`;
+    s.diagEl.textContent = `Bilder/s: ${fps.toFixed(0)} · Eingabe→Bild: ${lat} · Drücke: ${s.diag.presses} · Core: ${s.core.getFps ? s.core.getFps() : '?'} fps`;
   }, 500);
 }
 

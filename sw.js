@@ -2,7 +2,7 @@
 // liegen in IndexedDB und werden hier nicht berührt.
 // Bei jeder Version CACHE_VERSION erhöhen, damit alte Dateien ersetzt werden.
 
-const CACHE_VERSION = 'retrobase-0.1.2';
+const CACHE_VERSION = 'retrobase-0.1.3';
 const SHELL = [
   './',
   './index.html',
