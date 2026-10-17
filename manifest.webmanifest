@@ -1,7 +1,7 @@
 {
   "name": "RetroBase",
   "short_name": "RetroBase",
-  "description": "PWA-Retro-Emulator für Game Boy (GameCube folgt)",
+  "description": "PWA-Retro-Emulator für Handheld-Spiele (Cube folgt)",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

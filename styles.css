@@ -6,8 +6,8 @@
   --muted: #9aa1b2;
   --accent: #7c9cff;
   --accent-2: #ffcf5c;
-  --gb-green: #9bbc0f;
-  --gc-violet: #6a4fb5;
+  --hh-screen: #b8e05a;
+  --cube-violet: #6a4fb5;
   --danger: #ff6b6b;
   --radius: 16px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -98,10 +98,10 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
   display: grid;
   place-items: center;
 }
-.thumb-gb { background: linear-gradient(160deg, #c9cdb5, #8b9a6b); }
-.thumb-gb .screen { width: 90px; height: 62px; background: var(--gb-green); border: 6px solid #3c4a2a; border-radius: 4px; }
-.thumb-gc { background: linear-gradient(160deg, #8e7ad0, #3e2d75); }
-.thumb-gc .cube { width: 56px; height: 56px; background: rgba(255,255,255,0.85); border-radius: 8px; transform: rotate(45deg); }
+.thumb-hh { background: linear-gradient(160deg, #c8ccd4, #7d8494); }
+.thumb-hh .screen { width: 90px; height: 62px; background: var(--hh-screen); border: 6px solid #2c303a; border-radius: 4px; }
+.thumb-cube { background: linear-gradient(160deg, #8e7ad0, #3e2d75); }
+.thumb-cube .cube { width: 56px; height: 56px; background: rgba(255,255,255,0.85); border-radius: 8px; transform: rotate(45deg); }
 
 /* Startup animation */
 .boot {
@@ -115,9 +115,9 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
   animation: boot-fade-out 0.4s ease 2.2s forwards;
 }
 .boot .device { display: flex; flex-direction: column; align-items: center; gap: 16px; animation: boot-scale 2.2s ease-out forwards; }
-.boot .body { width: 200px; height: 140px; border-radius: 18px 18px 60px 18px; position: relative; }
-.boot .body.gb { background: #c9cdb5; box-shadow: inset 0 -8px 0 #8b8f78; }
-.boot .body.gc { background: #6a4fb5; box-shadow: inset 0 -8px 0 #4a3690; border-radius: 14px; }
+.boot .body { width: 200px; height: 140px; border-radius: 18px; position: relative; }
+.boot .body.hh { background: #c8ccd4; box-shadow: inset 0 -8px 0 #7d8494; }
+.boot .body.cube { background: #6a4fb5; box-shadow: inset 0 -8px 0 #4a3690; border-radius: 14px; }
 .boot .led {
   position: absolute; left: 18px; bottom: 18px; width: 10px; height: 10px; border-radius: 50%;
   background: #3a1111; animation: boot-led 2.2s ease forwards;

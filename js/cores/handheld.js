@@ -1,4 +1,4 @@
-// Game-Boy-Core: Adapter um WasmBoy (C/AssemblyScript → WebAssembly).
+// Handheld-Core: Adapter um WasmBoy (C/AssemblyScript → WebAssembly).
 // Die restliche App spricht nur das Interface dieses Adapters an, damit der Core später
 // ausgetauscht werden kann (z. B. gegen einen Gambatte/mGBA-Build).
 
@@ -6,9 +6,9 @@ import { WasmBoy } from '../../vendor/wasmboy/wasmboy.esm.js';
 
 let configured = false;
 
-export const gameboyCore = {
-  id: 'gb',
-  name: 'Game Boy',
+export const handheldCore = {
+  id: 'hh',
+  name: 'Handheld',
   available: true,
   extensions: ['gb', 'gbc'],
   width: 160,

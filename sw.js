@@ -2,7 +2,7 @@
 // liegen in IndexedDB und werden hier nicht berührt.
 // Bei jeder Version CACHE_VERSION erhöhen, damit alte Dateien ersetzt werden.
 
-const CACHE_VERSION = 'retrobase-0.1.0';
+const CACHE_VERSION = 'retrobase-0.1.1';
 const SHELL = [
   './',
   './index.html',
@@ -12,8 +12,8 @@ const SHELL = [
   './js/app.js',
   './js/db.js',
   './js/input.js',
-  './js/cores/gameboy.js',
-  './js/cores/gamecube.js',
+  './js/cores/handheld.js',
+  './js/cores/cube.js',
   './vendor/wasmboy/wasmboy.esm.js',
 ];
 

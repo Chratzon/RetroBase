@@ -3,12 +3,12 @@
 
 import * as db from './db.js';
 import { createInput, KEYBOARD_HELP } from './input.js';
-import { gameboyCore } from './cores/gameboy.js';
-import { gamecubeCore } from './cores/gamecube.js';
+import { handheldCore } from './cores/handheld.js';
+import { cubeCore } from './cores/cube.js';
 
 const CONSOLES = {
-  gb: { core: gameboyCore, label: 'Game Boy', theme: 'thumb-gb', bootClass: 'gb', color: '#9bbc0f', extensions: '.gb,.gbc', desc: 'Original Game Boy und Color, z. B. Pokémon.' },
-  gc: { core: gamecubeCore, label: 'GameCube', theme: 'thumb-gc', bootClass: 'gc', color: '#8e7ad0', extensions: '.iso,.gcm,.rvz', desc: 'Nintendo GameCube (Core folgt).' },
+  hh: { core: handheldCore, label: 'Handheld', theme: 'thumb-hh', bootClass: 'hh', color: '#b8e05a', extensions: '.gb,.gbc', desc: 'Klassische Handheld-Spiele, inkl. Farbversion.' },
+  cube: { core: cubeCore, label: 'Cube', theme: 'thumb-cube', bootClass: 'cube', color: '#8e7ad0', extensions: '.iso,.gcm,.rvz', desc: 'Würfel-Konsole mit Disc-Format (Core folgt).' },
 };
 
 const SLOTS = [1, 2, 3];
@@ -84,7 +84,7 @@ function renderStart() {
         .map(
           ([id, c]) => `
         <button class="console-card" data-console="${id}">
-          <div class="console-thumb ${c.theme}">${id === 'gb' ? '<div class="screen"></div>' : '<div class="cube"></div>'}</div>
+          <div class="console-thumb ${c.theme}">${id === 'hh' ? '<div class="screen"></div>' : '<div class="cube"></div>'}</div>
           <div class="name">${esc(c.label)}</div>
           <div class="desc">${esc(c.desc)}</div>
           <span class="badge ${c.core.available ? 'ok' : ''}">${c.core.available ? 'Verfügbar' : 'Bald verfügbar'}</span>
@@ -217,7 +217,7 @@ async function importFiles(consoleId, files) {
       skipped++;
       continue;
     }
-    const title = (consoleId === 'gb' && db.readGameBoyTitle(bytes)) || file.name.replace(/\.[^.]+$/, '');
+    const title = (consoleId === 'hh' && db.readHeaderTitle(bytes)) || file.name.replace(/\.[^.]+$/, '');
     await db.putRom({
       id,
       console: consoleId,

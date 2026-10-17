@@ -127,8 +127,8 @@ export async function hashBytes(bytes) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Liest den Titel aus dem Game-Boy-Header (Offset 0x134–0x143).
-export function readGameBoyTitle(bytes) {
+// Liest den Titel aus dem Header (Offset 0x134–0x143) (Offset 0x134–0x143).
+export function readHeaderTitle(bytes) {
   if (bytes.length < 0x144) return null;
   let title = '';
   for (let i = 0x134; i < 0x144; i++) {

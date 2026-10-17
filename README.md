@@ -2,7 +2,7 @@
 
 Eine PWA (Progressive Web App) als Retro-Emulator. Läuft im Browser auf Smartphone, Tablet und Desktop und lässt sich auf den Startbildschirm legen.
 
-**Stand: v0.1.0**. Verfügbar ist der **Game Boy** (inkl. Color). Der **GameCube** ist im Startscreen als „Bald verfügbar“ enthalten, sein Core folgt später.
+**Stand: v0.1.0**. Verfügbar ist die **Handheld**-Konsole (inkl. Farbversion). Die **Cube**-Konsole ist im Startscreen als „Bald verfügbar“ enthalten, ihr Core folgt später.
 
 ## Funktionen
 
@@ -37,8 +37,8 @@ sw.js                   Service Worker (App-Shell offline)
 js/app.js               Routing, Startscreen, Bibliothek, Spielansicht, Menüs
 js/db.js                IndexedDB: ROMs und Spielstände
 js/input.js             Eingabe: Tastatur, On-Screen-Tasten, Gamepad
-js/cores/gameboy.js     Game-Boy-Core (Adapter um WasmBoy)
-js/cores/gamecube.js    GameCube-Platzhalter
+js/cores/handheld.js    Handheld-Core (Adapter um WasmBoy)
+js/cores/cube.js         Cube-Platzhalter
 vendor/wasmboy/         Vendored WasmBoy 0.7.1 (GPL-3.0-or-later, siehe LICENSE)
 ```
 
@@ -53,8 +53,12 @@ ROMs und Spielstände gehören nicht ins Repository. Die `.gitignore` schließt 
 - Der Game-Boy-Core basiert auf WasmBoy, das laut Upstream noch nicht vollständig genau ist. Einzelne Spiele können Fehler zeigen.
 - Audio startet erst nach einer Eingabe (Browser-Vorgabe).
 - Auf iOS sind Hintergrundbetrieb und Speicher eingeschränkter als auf Android.
-- Der GameCube-Core existiert noch nicht. Ein brauchbarer Browser-Emulator dafür ist eine eigene, große Aufgabe.
+- Der Cube-Core existiert noch nicht. Ein brauchbarer Browser-Emulator dafür ist eine eigene, große Aufgabe.
 
 ## Lizenz
 
-Der Code von RetroBase ist noch nicht lizenziert. Da WasmBoy unter GPL-3.0-or-later steht, muss eine Veröffentlichung unter einer GPL-kompatiblen Lizenz erfolgen, sobald die Build-Ausgabe mit WasmBoy ausgeliefert wird. Die Lizenzwahl ist offen.
+RetroBase steht unter der **GNU General Public License v3.0 (GPL-3.0)**, siehe `LICENSE`. Das ist nötig, weil der mitgelieferte WasmBoy-Core (`vendor/wasmboy/`) unter GPL-3.0-or-later steht. WasmBoy bleibt unter seiner eigenen Lizenz (`vendor/wasmboy/LICENSE`).
+
+## Namensgebung
+
+Die Konsolen heißen bewusst generisch „Handheld“ und „Cube“, damit keine Marken Dritter verwendet werden. Die Dateiendungen `.gb` und `.gbc` sind technische Formatbezeichnungen und bleiben so.
