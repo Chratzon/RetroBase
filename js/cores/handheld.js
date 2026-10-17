@@ -133,6 +133,10 @@ export const handheldCore = {
   },
 
   // mGBA meldet in diesem Build keine Frame-Callbacks, deshalb gibt es keinen verlässlichen Bildraten-Wert.
+  setMuted(muted) {
+    if (mod) mod.setVolume(muted ? 0 : 1);
+  },
+
   getFps() {
     return null;
   },

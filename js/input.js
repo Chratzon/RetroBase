@@ -18,7 +18,7 @@ const KEY_MAP = {
 
 const emptyState = () => Object.fromEntries(BUTTONS.map((b) => [b, false]));
 
-export function createInput({ onChange }) {
+export function createInput({ onChange, onSource }) {
   const sources = { keyboard: emptyState(), touch: emptyState(), gamepad: emptyState() };
   let combined = emptyState();
   let active = false;
@@ -38,6 +38,7 @@ export function createInput({ onChange }) {
     if (!sources[name] || !(button in sources[name])) return;
     if (sources[name][button] === pressed) return;
     sources[name][button] = pressed;
+    if (pressed && onSource) onSource(name);
     recompute();
   }
 
@@ -97,35 +98,70 @@ export function createInput({ onChange }) {
   }
 
   // ----- On-Screen-Tasten (Maus und Touch) -----
+  // Ein Finger kann von einer Taste zur nächsten rutschen, ohne loszulassen (z. B. über das Steuerkreuz).
+  // Jeder Zeiger merkt sich seine aktuelle Taste; eine Taste ist gedrückt, solange mindestens ein Zeiger auf ihr liegt.
   function bindPadButtons(root) {
-    const elements = root.querySelectorAll('[data-btn]');
-    const cleanups = [];
-    elements.forEach((el) => {
-      const btn = el.dataset.btn;
-      const down = (e) => {
-        e.preventDefault();
-        el.classList.add('pressed');
-        el.setPointerCapture?.(e.pointerId);
-        setSource('touch', btn, true);
-      };
-      const up = (e) => {
-        e.preventDefault();
-        el.classList.remove('pressed');
-        setSource('touch', btn, false);
-      };
-      el.addEventListener('pointerdown', down);
-      el.addEventListener('pointerup', up);
-      el.addEventListener('pointercancel', up);
-      el.addEventListener('lostpointercapture', up);
-      el.addEventListener('contextmenu', (e) => e.preventDefault());
-      cleanups.push(() => {
-        el.removeEventListener('pointerdown', down);
-        el.removeEventListener('pointerup', up);
-        el.removeEventListener('pointercancel', up);
-        el.removeEventListener('lostpointercapture', up);
-      });
-    });
-    return () => cleanups.forEach((fn) => fn());
+    const active = new Set();    // Zeiger, die gerade auf dem Bedienfeld liegen
+    const byPointer = new Map(); // pointerId -> Taste, auf der der Zeiger gerade liegt
+    const count = Object.fromEntries(BUTTONS.map((b) => [b, 0]));
+
+    const sync = (btn) => {
+      const pressed = count[btn] > 0;
+      root.querySelectorAll(`[data-btn="${btn}"]`).forEach((el) => el.classList.toggle('pressed', pressed));
+      setSource('touch', btn, pressed);
+    };
+    const press = (btn, id) => {
+      byPointer.set(id, btn);
+      count[btn]++;
+      sync(btn);
+    };
+    const release = (id) => {
+      const btn = byPointer.get(id);
+      if (!btn) return;
+      byPointer.delete(id);
+      count[btn]--;
+      sync(btn);
+    };
+    const buttonAt = (x, y) => {
+      const el = document.elementFromPoint(x, y)?.closest?.('[data-btn]');
+      return el && root.contains(el) ? el.dataset.btn : null;
+    };
+
+    const onDown = (e) => {
+      const el = e.target.closest?.('[data-btn]');
+      if (!el || !root.contains(el)) return;
+      e.preventDefault();
+      root.setPointerCapture?.(e.pointerId);
+      active.add(e.pointerId);
+      press(el.dataset.btn, e.pointerId);
+    };
+    const onMove = (e) => {
+      if (!active.has(e.pointerId)) return;
+      const next = buttonAt(e.clientX, e.clientY);
+      if (next === (byPointer.get(e.pointerId) ?? null)) return;
+      release(e.pointerId);
+      if (next) press(next, e.pointerId);
+    };
+    const onUp = (e) => {
+      active.delete(e.pointerId);
+      release(e.pointerId);
+    };
+    const onContext = (e) => e.preventDefault();
+
+    root.addEventListener('pointerdown', onDown);
+    root.addEventListener('pointermove', onMove);
+    root.addEventListener('pointerup', onUp);
+    root.addEventListener('pointercancel', onUp);
+    root.addEventListener('lostpointercapture', onUp);
+    root.addEventListener('contextmenu', onContext);
+    return () => {
+      root.removeEventListener('pointerdown', onDown);
+      root.removeEventListener('pointermove', onMove);
+      root.removeEventListener('pointerup', onUp);
+      root.removeEventListener('pointercancel', onUp);
+      root.removeEventListener('lostpointercapture', onUp);
+      root.removeEventListener('contextmenu', onContext);
+    };
   }
 
   function start() {

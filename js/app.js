@@ -249,6 +249,37 @@ async function removeRom(consoleId, id) {
 
 // ---------- Spielansicht ----------
 
+// ---------- Einstellungen (nur auf diesem Gerät) ----------
+
+function getPref(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
+
+function setPref(key, on) {
+  try {
+    localStorage.setItem(key, on ? '1' : '0');
+  } catch {
+    /* nur für diese Sitzung */
+  }
+}
+
+// ---------- Spielansicht ----------
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (err) {
+    console.warn(err);
+    toast('Vollbild ist hier nicht verfügbar');
+  }
+}
+
 async function renderGame(romId) {
   const rom = await db.getRom(romId);
   if (!rom) {
@@ -256,24 +287,29 @@ async function renderGame(romId) {
     return go('#/');
   }
   const c = CONSOLES[rom.console];
-  const showPad = matchMedia('(pointer: coarse)').matches;
+  const coarse = matchMedia('(pointer: coarse)').matches;
   document.body.classList.add('in-game');
 
   overlay.hidden = true;
+  const fsButton = document.fullscreenEnabled
+    ? '<button class="btn" id="fs" title="Vollbild" aria-label="Vollbild">⛶</button>'
+    : '';
   setView(`
-    <div class="game">
+    <div class="game${coarse ? '' : ' controls-hidden'}" id="game">
       <div class="game-bar">
         <button class="btn ghost" id="exit" aria-label="Zurück">←</button>
         <div class="title">${esc(rom.title)}</div>
+        ${fsButton}
+        <button class="btn" id="ctl-toggle" title="Steuerung ein-/ausblenden" aria-label="Steuerung ein-/ausblenden">🎮</button>
         <button class="btn" id="switch" title="Schnellwechsel">⇆</button>
         <button class="btn" id="menu" title="Menü">☰</button>
       </div>
-      <div class="screen-wrap">
-        <div class="game-canvas-holder"><canvas id="game-canvas" width="${c.core.width}" height="${c.core.height}"></canvas></div>
-        <div class="diag hidden" id="diag"></div>
-      </div>
-      <div class="controls ${showPad ? 'show' : ''}" id="controls">
-        <div class="pad-row">
+      <div class="play" id="controls">
+        <div class="screen-wrap" id="screen">
+          <div class="game-canvas-holder"><canvas id="game-canvas" width="${c.core.width}" height="${c.core.height}"></canvas></div>
+          <div class="diag hidden" id="diag"></div>
+        </div>
+        <div class="dpad-wrap ctl">
           <div class="dpad">
             <button class="pad-btn up" data-btn="up" aria-label="Oben">▲</button>
             <button class="pad-btn left" data-btn="left" aria-label="Links">◀</button>
@@ -281,22 +317,64 @@ async function renderGame(romId) {
             <button class="pad-btn right" data-btn="right" aria-label="Rechts">▶</button>
             <button class="pad-btn down" data-btn="down" aria-label="Unten">▼</button>
           </div>
-          <div class="ab">
-            <button class="pad-btn round" data-btn="b" aria-label="B">B</button>
-            <button class="pad-btn round" data-btn="a" aria-label="A">A</button>
-          </div>
         </div>
-        <div class="ss">
+        <div class="pills ctl">
           <button class="pad-btn pill" data-btn="select">Select</button>
           <button class="pad-btn pill" data-btn="start">Start</button>
+          <button class="pad-btn pill" id="mute" aria-pressed="false">Ton</button>
+        </div>
+        <div class="ab ctl">
+          <button class="pad-btn round" data-btn="b" aria-label="B">B</button>
+          <button class="pad-btn round" data-btn="a" aria-label="A">A</button>
         </div>
       </div>
     </div>
   `);
 
+  const gameEl = document.getElementById('game');
+  const screenEl = document.getElementById('screen');
+  const controlsVisible = () => !gameEl.classList.contains('controls-hidden');
+  const setControls = (visible) => gameEl.classList.toggle('controls-hidden', !visible);
+
   document.getElementById('exit').onclick = () => go('#/' + rom.console);
   document.getElementById('switch').onclick = () => openSwitcher(rom);
   document.getElementById('menu').onclick = () => openMenu(rom);
+  document.getElementById('ctl-toggle').onclick = () => setControls(!controlsVisible());
+
+  const cleanups = [];
+
+  // Vollbild
+  const fsBtn = document.getElementById('fs');
+  if (fsBtn) {
+    fsBtn.onclick = toggleFullscreen;
+    const syncFs = () => {
+      const on = !!document.fullscreenElement;
+      fsBtn.classList.toggle('active', on);
+      fsBtn.title = on ? 'Vollbild beenden' : 'Vollbild';
+    };
+    document.addEventListener('fullscreenchange', syncFs);
+    cleanups.push(() => document.removeEventListener('fullscreenchange', syncFs));
+  }
+
+  // Ton stumm schalten (bleibt über Spiele hinweg erhalten)
+  let muted = getPref('rb-mute', false);
+  const muteBtn = document.getElementById('mute');
+  const applyMute = () => {
+    muteBtn.classList.toggle('active', muted);
+    muteBtn.textContent = muted ? 'Stumm' : 'Ton';
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    try {
+      c.core.setMuted?.(muted);
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+  muteBtn.onclick = () => {
+    muted = !muted;
+    setPref('rb-mute', muted);
+    applyMute();
+  };
+  applyMute();
 
   // Eingabe und Core starten
   const canvas = document.getElementById('game-canvas');
@@ -315,16 +393,27 @@ async function renderGame(romId) {
       diag.wasAnyPressed = anyPressed;
       c.core.setJoypad(state);
     },
+    // Tastatur oder Controller: Steuerung ausblenden, falls gewünscht
+    onSource: (src) => {
+      if ((src === 'keyboard' || src === 'gamepad') && getPref('rb-autohide', true)) setControls(false);
+    },
   });
   input.start();
-  input.bindPadButtons(document.getElementById('controls'));
+  cleanups.push(input.bindPadButtons(document.getElementById('controls')));
+
+  // Auf dem Touchscreen antippen blendet die Steuerung wieder ein
+  const onScreenTap = (e) => {
+    if (e.pointerType === 'touch' && !controlsVisible()) setControls(true);
+  };
+  screenEl.addEventListener('pointerdown', onScreenTap);
+  cleanups.push(() => screenEl.removeEventListener('pointerdown', onScreenTap));
 
   // Audio beim ersten Tippen/Drücken freigeben (Browser-Vorgabe)
   const unlock = () => c.core.unlockAudio();
   window.addEventListener('pointerdown', unlock, { once: true, capture: true });
   window.addEventListener('keydown', unlock, { once: true, capture: true });
 
-  currentSession = { romId, core: c.core, input, canvas, consoleId: rom.console, diag, diagEl, unlock };
+  currentSession = { romId, core: c.core, input, canvas, consoleId: rom.console, diag, diagEl, unlock, cleanups };
   if (isDiagOn()) startDiag();
   currentSession.autosave = setInterval(autoSave, AUTOSAVE_MS);
 
@@ -339,6 +428,7 @@ async function renderGame(romId) {
       },
     });
     await c.core.load(new Uint8Array(rom.bytes), romId);
+    applyMute();
     await db.touchRom(romId);
   } catch (err) {
     console.error(err);
@@ -385,6 +475,8 @@ async function endSession() {
   currentSession = null;
   clearInterval(s.diag.timer);
   clearInterval(s.autosave);
+  (s.cleanups || []).forEach((fn) => fn());
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   window.removeEventListener('pointerdown', s.unlock, { capture: true });
   window.removeEventListener('keydown', s.unlock, { capture: true });
   s.input.stop();
@@ -444,6 +536,7 @@ async function openMenu(rom) {
     </div>
     <div class="row">
       <button class="btn" id="m-diag">Diagnose ${isDiagOn() ? 'ausblenden' : 'einblenden'}</button>
+      <button class="btn" id="m-autohide">Steuerung bei Tastatur/Controller: ${getPref('rb-autohide', true) ? 'automatisch ausblenden' : 'immer anzeigen'}</button>
       <button class="btn" id="m-reset">Neustart</button>
       <button class="btn" id="m-switch">Spiel wechseln</button>
       <button class="btn" id="m-library">Zur Bibliothek</button>
@@ -464,6 +557,11 @@ async function openMenu(rom) {
     if (on) startDiag();
     else stopDiag();
     closeSheet();
+  };
+  el.querySelector('#m-autohide').onclick = () => {
+    setPref('rb-autohide', !getPref('rb-autohide', true));
+    closeSheet();
+    toast(getPref('rb-autohide', true) ? 'Automatisches Ausblenden an' : 'Steuerung bleibt sichtbar');
   };
   el.querySelector('#m-switch').onclick = () => openSwitcher(rom);
   el.querySelector('#m-library').onclick = () => {
