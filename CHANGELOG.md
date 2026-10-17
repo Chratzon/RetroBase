@@ -9,7 +9,7 @@
 - Vollbild-Taste blendet Titel und Schnellwechsel aus. Die schmale Leiste mit Vollbild, Steuerung und Menü bleibt über dem Bild. Echtes Vollbild nutzt der Browser, wo er es erlaubt
 - Steuerung ein- und ausblenden. Bei Tastatur oder Controller blendet sie sich automatisch aus (im Menü abschaltbar)
 - Ein Finger kann vom Steuerkreuz auf die nächste Taste rutschen, ohne abzuheben
-- Querformat: Steuerkreuz links, A/B rechts, Bild in der Mitte. Auf niedrigen Bildschirmen liegt die Steuerung halbtransparent über dem Bild
+- Querformat: Steuerkreuz links, A/B rechts, Steuerung oben am Bildschirmrand. Auf niedrigen Bildschirmen liegt die Steuerung halbtransparent über dem Bild
 - Hochformat: Das Bild sitzt oben, die Steuerung nutzt den Platz darunter
 - Service Worker liefert die Header für cross-origin isolation aus (nötig für mGBA auf GitHub Pages). Die Seite lädt beim ersten Besuch einmal neu.
 
