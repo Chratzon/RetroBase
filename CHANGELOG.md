@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.4
+
+- Service Worker lädt Updates zuerst aus dem Netz (Cache nur noch als Offline-Fallback)
+
 ## v0.1.3
 
 - Diagnose zählt zusätzlich die erkannten Tastendrücke

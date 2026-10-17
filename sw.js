@@ -2,7 +2,7 @@
 // liegen in IndexedDB und werden hier nicht berührt.
 // Bei jeder Version CACHE_VERSION erhöhen, damit alte Dateien ersetzt werden.
 
-const CACHE_VERSION = 'retrobase-0.1.3';
+const CACHE_VERSION = 'retrobase-0.1.4';
 const SHELL = [
   './',
   './index.html',
@@ -32,24 +32,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Netz zuerst: Updates erscheinen beim nächsten Laden. Offline greift der Cache.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Cache-first für die Shell, Netz als Fallback
   event.respondWith(
-    caches.match(req).then(
-      (cached) =>
-        cached ||
-        fetch(req).then((res) => {
-          if (res.ok && res.type === 'basic') {
-            const copy = res.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-    )
+    fetch(req)
+      .then((res) => {
+        if (res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
   );
 });
