@@ -6,7 +6,7 @@
 - Battery-Saves (SRAM) werden pro Spiel in IndexedDB gespeichert und beim nächsten Start wiederhergestellt
 - Automatischer Speicherstand alle 5 Minuten, im Menü als „Automatisch“ ladbar (getrennt von den Slots 1–3)
 - Ton-Taste (Stummschalten) zwischen Select und Start
-- Vollbild-Taste blendet die obere Leiste aus. Ein kleiner Rest mit Menü bleibt über dem Bild. Echtes Vollbild nutzt der Browser, wo er es erlaubt
+- Vollbild-Taste blendet Titel und Schnellwechsel aus. Die schmale Leiste mit Vollbild, Steuerung und Menü bleibt über dem Bild. Echtes Vollbild nutzt der Browser, wo er es erlaubt
 - Steuerung ein- und ausblenden. Bei Tastatur oder Controller blendet sie sich automatisch aus (im Menü abschaltbar)
 - Ein Finger kann vom Steuerkreuz auf die nächste Taste rutschen, ohne abzuheben
 - Querformat: Steuerkreuz links, A/B rechts, Bild in der Mitte. Auf niedrigen Bildschirmen liegt die Steuerung halbtransparent über dem Bild

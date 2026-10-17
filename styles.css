@@ -287,26 +287,11 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 .game.controls-hidden .play { grid-template-rows: 1fr; }
 .game.controls-hidden .screen-wrap { align-self: stretch; aspect-ratio: auto; }
 
-/* Vollbild-Modus: keine obere Leiste, nur ein kleiner Knopf-Rest schwebt über dem Bild */
-.game.immersive .game-bar {
-  position: absolute;
-  top: calc(var(--safe-top) + 6px);
-  right: 6px;
-  left: auto;
-  z-index: 5;
-  padding: 0;
-  gap: 6px;
-  background: transparent;
-}
+/* Vollbild-Modus: Die Leiste bleibt als schmaler Streifen über dem Bild, nur mit Vollbild, Steuerung und Menü */
+.game.immersive .game-bar { padding: 6px 10px; justify-content: flex-end; }
 .game.immersive .game-bar .title,
 .game.immersive #exit,
 .game.immersive #switch { display: none; }
-.game.immersive .game-bar .btn {
-  background: rgba(20, 22, 28, 0.45);
-  color: #fff;
-  opacity: 0.8;
-}
-.game.immersive .game-bar .btn.active { background: var(--accent); color: #0b0d12; }
 
 /* Querformat: Kreuz links, A/B rechts, Select/Start/Ton darunter, Bild dazwischen */
 @media (orientation: landscape) {
