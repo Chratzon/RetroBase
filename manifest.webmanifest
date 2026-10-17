@@ -1,0 +1,15 @@
+{
+  "name": "RetroBase",
+  "short_name": "RetroBase",
+  "description": "PWA-Retro-Emulator für Game Boy (GameCube folgt)",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14161c",
+  "theme_color": "#14161c",
+  "lang": "de",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

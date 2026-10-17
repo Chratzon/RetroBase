@@ -1,0 +1,13 @@
+# ROMs, Images und Spielstände gehören nicht ins Repository
+*.gb
+*.gbc
+*.gba
+*.iso
+*.gcm
+*.rvz
+*.wbf
+*.sav
+*.state
+*.zip
+node_modules/
+.DS_Store
