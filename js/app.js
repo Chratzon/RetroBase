@@ -49,6 +49,9 @@ function go(hash) {
 
 // ---------- Router ----------
 
+const AUTO_SLOT = 0; // Auto-Speicherstand, getrennt von den Slots 1–3
+const AUTOSAVE_MS = 5 * 60 * 1000;
+
 let currentSession = null; // { romId, core, input, canvas }
 
 async function render() {
@@ -323,6 +326,7 @@ async function renderGame(romId) {
 
   currentSession = { romId, core: c.core, input, canvas, consoleId: rom.console, diag, diagEl, unlock };
   if (isDiagOn()) startDiag();
+  currentSession.autosave = setInterval(autoSave, AUTOSAVE_MS);
 
   try {
     await c.core.init(canvas, {
@@ -380,6 +384,7 @@ async function endSession() {
   const s = currentSession;
   currentSession = null;
   clearInterval(s.diag.timer);
+  clearInterval(s.autosave);
   window.removeEventListener('pointerdown', s.unlock, { capture: true });
   window.removeEventListener('keydown', s.unlock, { capture: true });
   s.input.stop();
@@ -416,6 +421,13 @@ async function openMenu(rom) {
   const el = sheet(`
     <h2>${esc(rom.title)}</h2>
     <p class="muted" style="margin-top:0">Spielstände auf diesem Gerät</p>
+    <div class="slot">
+      <div class="t">Automatisch</div>
+      <div class="m">${bySlot[AUTO_SLOT] ? 'gespeichert ' + fmtDate(bySlot[AUTO_SLOT].savedAt) + ' (alle 5 Min.)' : 'noch kein Auto-Speicherstand'}</div>
+      <div class="row">
+        <button class="btn" data-load="${AUTO_SLOT}" ${bySlot[AUTO_SLOT] ? '' : 'disabled'}>Laden</button>
+      </div>
+    </div>
     <div class="row">
       ${SLOTS.map((n) => {
         const s = bySlot[n];
@@ -459,6 +471,19 @@ async function openMenu(rom) {
     go('#/' + rom.console);
   };
   el.querySelector('#m-close').onclick = closeSheet;
+}
+
+// Automatischer Speicherstand: läuft im Hintergrund, stört das Spiel nicht.
+async function autoSave() {
+  const s = currentSession;
+  if (!s) return;
+  try {
+    const state = await s.core.createState();
+    await db.putState(s.romId, AUTO_SLOT, state);
+    s.autosaveAt = Date.now();
+  } catch (err) {
+    console.warn('Auto-Speicherstand fehlgeschlagen', err);
+  }
 }
 
 async function saveSlot(rom, slot) {
