@@ -26,6 +26,12 @@ let currentId = null; // ID des geladenen Spiels
 let pressed = {};
 let saveTimer = null;
 let listening = false;
+let muted = false;
+let volume = 1; // Multiplikator wie bei mGBA: 1 = 100 %, bis 2 = 200 %
+
+function applyVolume() {
+  if (mod) mod.setVolume(muted ? 0 : volume);
+}
 
 function requireModule() {
   if (!mod || currentId === null) throw new Error('Core ist nicht bereit');
@@ -116,6 +122,7 @@ export const handheldCore = {
       throw new Error('ROM konnte nicht geladen werden (keine gültige Game-Boy-Datei?)');
     }
     mod.resumeGame();
+    applyVolume();
   },
 
   async play() {
@@ -133,8 +140,14 @@ export const handheldCore = {
   },
 
   // mGBA meldet in diesem Build keine Frame-Callbacks, deshalb gibt es keinen verlässlichen Bildraten-Wert.
-  setMuted(muted) {
-    if (mod) mod.setVolume(muted ? 0 : 1);
+  setMuted(m) {
+    muted = !!m;
+    applyVolume();
+  },
+
+  setVolume(v) {
+    volume = Math.max(0, Math.min(2, Number(v)));
+    applyVolume();
   },
 
   getFps() {

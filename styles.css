@@ -326,6 +326,22 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
   .game { --pad: min(11vh, 52px); --round: min(13vh, 60px); }
 }
 
+/* Layout-Einstellungen */
+.game.size-s { --pad: min(9vw, 38px); --round: min(11vw, 46px); }
+.game.size-l { --pad: min(15vw, 62px); --round: min(18vw, 72px); }
+.game.swap .dpad-wrap { grid-area: right; justify-self: end; }
+.game.swap .ab { grid-area: left; justify-self: start; }
+@media (orientation: landscape) {
+  .game.swap .dpad-wrap { margin-left: 0; margin-right: clamp(8px, 4vw, 40px); }
+  .game.swap .ab { margin-right: 0; margin-left: clamp(8px, 4vw, 40px); }
+  /* Höhe der Steuerung im Querformat */
+  .play > .ctl { translate: 0 var(--vshift, 0vh); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .game.swap .dpad-wrap { left: auto; right: clamp(10px, 4vw, 40px); }
+  .game.swap .ab { right: auto; left: clamp(10px, 4vw, 40px); }
+}
+
 /* Sheets (menu, quick switch) */
 .overlay {
   position: fixed; inset: 0;
@@ -356,6 +372,15 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 .sheet .slot .t { font-weight: 600; }
 .sheet .slot .m { color: var(--muted); font-size: 0.8rem; margin: 2px 0 8px; }
 .sheet .slot .row { margin: 0; }
+.sheet .set-title { margin: 14px 0 8px; font-size: 1rem; }
+.sheet .setting {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--surface-2);
+}
+.sheet .setting label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.sheet .setting .val { color: var(--muted); font-size: 0.85rem; margin-left: auto; white-space: nowrap; }
+.sheet .setting input[type="range"] { flex: 0 0 55%; }
+.sheet .setting select { font: inherit; padding: 6px 8px; border-radius: 8px; background: var(--surface-2); color: var(--text); border: 0; }
 
 .toast {
   position: fixed;

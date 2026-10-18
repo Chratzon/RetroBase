@@ -49,6 +49,36 @@ function go(hash) {
 
 // ---------- Router ----------
 
+const SETTINGS_DEFAULT = { volume: 100, swap: false, size: 'm', vshift: 0, autohide: true };
+
+function getSettings() {
+  try {
+    return { ...SETTINGS_DEFAULT, ...JSON.parse(localStorage.getItem('rb-settings') || '{}') };
+  } catch {
+    return { ...SETTINGS_DEFAULT };
+  }
+}
+
+function saveSettings(patch) {
+  const next = { ...getSettings(), ...patch };
+  try {
+    localStorage.setItem('rb-settings', JSON.stringify(next));
+  } catch {
+    /* nur für diese Sitzung */
+  }
+  return next;
+}
+
+// Layout-Einstellungen auf die Spielansicht übertragen
+function applyLayout(gameEl) {
+  if (!gameEl) return;
+  const s = getSettings();
+  gameEl.classList.toggle('swap', !!s.swap);
+  gameEl.classList.remove('size-s', 'size-m', 'size-l');
+  gameEl.classList.add('size-' + s.size);
+  gameEl.style.setProperty('--vshift', s.vshift + 'vh');
+}
+
 const AUTO_SLOT = 0; // Auto-Speicherstand, getrennt von den Slots 1–3
 const AUTOSAVE_MS = 5 * 60 * 1000;
 
@@ -320,6 +350,8 @@ async function renderGame(romId) {
   `);
 
   const gameEl = document.getElementById('game');
+  applyLayout(gameEl);
+  c.core.setVolume?.(getSettings().volume / 100);
   const screenEl = document.getElementById('screen');
   const controlsVisible = () => !gameEl.classList.contains('controls-hidden');
   const setControls = (visible) => gameEl.classList.toggle('controls-hidden', !visible);
@@ -397,7 +429,7 @@ async function renderGame(romId) {
     },
     // Tastatur oder Controller: Steuerung ausblenden, falls gewünscht
     onSource: (src) => {
-      if ((src === 'keyboard' || src === 'gamepad') && getPref('rb-autohide', true)) setControls(false);
+      if ((src === 'keyboard' || src === 'gamepad') && getSettings().autohide) setControls(false);
     },
   });
   input.start();
@@ -522,6 +554,29 @@ async function openMenu(rom) {
         <button class="btn" data-load="${AUTO_SLOT}" ${bySlot[AUTO_SLOT] ? '' : 'disabled'}>Laden</button>
       </div>
     </div>
+    <h3 class="set-title">Einstellungen</h3>
+    <div class="setting">
+      <label for="s-vol">Lautstärke <span class="val" id="v-vol">${getSettings().volume}%</span></label>
+      <input type="range" id="s-vol" min="0" max="200" step="5" value="${getSettings().volume}">
+    </div>
+    <div class="setting">
+      <label><input type="checkbox" id="s-swap" ${getSettings().swap ? 'checked' : ''}> Kreuz rechts, A/B links</label>
+    </div>
+    <div class="setting">
+      <label for="s-size">Tastengröße</label>
+      <select id="s-size">
+        <option value="s" ${getSettings().size === 's' ? 'selected' : ''}>klein</option>
+        <option value="m" ${getSettings().size === 'm' ? 'selected' : ''}>mittel</option>
+        <option value="l" ${getSettings().size === 'l' ? 'selected' : ''}>groß</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label for="s-vs">Querformat: Steuerung tiefer <span class="val" id="v-vs">${getSettings().vshift} vh</span></label>
+      <input type="range" id="s-vs" min="0" max="40" step="2" value="${getSettings().vshift}">
+    </div>
+    <div class="setting">
+      <label><input type="checkbox" id="s-auto" ${getSettings().autohide ? 'checked' : ''}> Bei Tastatur oder Controller ausblenden</label>
+    </div>
     <div class="row">
       ${SLOTS.map((n) => {
         const s = bySlot[n];
@@ -538,7 +593,6 @@ async function openMenu(rom) {
     </div>
     <div class="row">
       <button class="btn" id="m-diag">Diagnose ${isDiagOn() ? 'ausblenden' : 'einblenden'}</button>
-      <button class="btn" id="m-autohide">Steuerung bei Tastatur/Controller: ${getPref('rb-autohide', true) ? 'automatisch ausblenden' : 'immer anzeigen'}</button>
       <button class="btn" id="m-reset">Neustart</button>
       <button class="btn" id="m-switch">Spiel wechseln</button>
       <button class="btn" id="m-library">Zur Bibliothek</button>
@@ -560,10 +614,30 @@ async function openMenu(rom) {
     else stopDiag();
     closeSheet();
   };
-  el.querySelector('#m-autohide').onclick = () => {
-    setPref('rb-autohide', !getPref('rb-autohide', true));
-    closeSheet();
-    toast(getPref('rb-autohide', true) ? 'Automatisches Ausblenden an' : 'Steuerung bleibt sichtbar');
+  // Einstellungen wirken sofort auf die laufende Spielansicht
+  const gameNode = () => document.getElementById('game');
+  el.querySelector('#s-vol').oninput = (e) => {
+    const v = Number(e.target.value);
+    el.querySelector('#v-vol').textContent = v + '%';
+    saveSettings({ volume: v });
+    currentSession?.core.setVolume?.(v / 100);
+  };
+  el.querySelector('#s-swap').onchange = (e) => {
+    saveSettings({ swap: e.target.checked });
+    applyLayout(gameNode());
+  };
+  el.querySelector('#s-size').onchange = (e) => {
+    saveSettings({ size: e.target.value });
+    applyLayout(gameNode());
+  };
+  el.querySelector('#s-vs').oninput = (e) => {
+    const v = Number(e.target.value);
+    el.querySelector('#v-vs').textContent = v + ' vh';
+    saveSettings({ vshift: v });
+    applyLayout(gameNode());
+  };
+  el.querySelector('#s-auto').onchange = (e) => {
+    saveSettings({ autohide: e.target.checked });
   };
   el.querySelector('#m-switch').onclick = () => openSwitcher(rom);
   el.querySelector('#m-library').onclick = () => {
