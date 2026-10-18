@@ -523,6 +523,8 @@ async function endSession() {
   window.removeEventListener('pointerdown', s.unlock, { capture: true });
   window.removeEventListener('keydown', s.unlock, { capture: true });
   s.input.stop();
+  // Beim Verlassen immer einen automatischen Speicherstand anlegen
+  await autoSave(s);
   try {
     await s.core.stop();
   } catch (e) {
@@ -657,8 +659,9 @@ async function openMenu(rom) {
 }
 
 // Automatischer Speicherstand: läuft im Hintergrund, stört das Spiel nicht.
-async function autoSave() {
-  const s = currentSession;
+// Wird vom Timer ohne Argument und beim Beenden mit der Sitzung aufgerufen
+async function autoSave(session = currentSession) {
+  const s = session;
   if (!s) return;
   try {
     const state = await s.core.createState();
