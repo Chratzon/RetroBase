@@ -297,19 +297,19 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 @media (orientation: landscape) {
   .play {
     grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "left screen right"
-      "left screen pills"
-      "left screen .";
+      "left screen ."
+      "left screen pills";
     padding: 4px 12px calc(6px + var(--safe-bottom));
   }
   .screen-wrap { align-self: stretch; aspect-ratio: auto; }
   /* Steuerung oben, im oberen Bereich des Bildschirms */
   .dpad-wrap { align-self: start; padding-top: 6px; margin-left: clamp(8px, 4vw, 40px); }
   .ab { align-self: start; justify-self: center; padding-top: 6px; margin-right: clamp(8px, 4vw, 40px); }
-  .pills { align-self: start; }
-  .play { align-content: start; }
+  .pills { align-self: end; }
+  .play { align-content: stretch; }
 }
 
 /* Querformat auf niedrigen Bildschirmen: Steuerung halbtransparent über dem Bild */
@@ -319,7 +319,7 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
   .play > .ctl { position: absolute; opacity: 0.6; }
   .dpad-wrap { left: clamp(10px, 4vw, 40px); top: 10px; }
   .ab { right: clamp(10px, 4vw, 40px); top: 10px; justify-self: auto; align-self: auto; padding-top: 0; }
-  .pills { left: 50%; top: 10px; transform: translateX(-50%); flex-direction: row; }
+  .pills { left: 50%; bottom: 10px; top: auto; transform: translateX(-50%); flex-direction: row; }
   .pills .pill { width: 64px; height: 26px; }
   .dpad { --pad: min(11vh, 52px); }
   .ab .round { width: min(13vh, 60px); height: min(13vh, 60px); }
@@ -334,8 +334,8 @@ h2 { font-size: 1.15rem; margin: 0 0 0.6rem; }
 @media (orientation: landscape) {
   .game.swap .dpad-wrap { margin-left: 0; margin-right: clamp(8px, 4vw, 40px); }
   .game.swap .ab { margin-right: 0; margin-left: clamp(8px, 4vw, 40px); }
-  /* Höhe der Steuerung im Querformat */
-  .play > .ctl { translate: 0 var(--vshift, 0vh); }
+  /* Höhe der Steuerung im Querformat; Select/Start/Ton bleiben unten */
+  .play > .dpad-wrap, .play > .ab { translate: 0 var(--vshift, 0vh); }
 }
 @media (orientation: landscape) and (max-height: 500px) {
   .game.swap .dpad-wrap { left: auto; right: clamp(10px, 4vw, 40px); }
