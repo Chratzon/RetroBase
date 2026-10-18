@@ -371,8 +371,16 @@ async function renderGame(romId) {
     fsBtn.classList.toggle('active', on);
     fsBtn.title = on ? 'Vollbild beenden' : 'Vollbild';
   };
+  // Ton-Knopf wandert im Vollbild in die Leiste oben rechts, sonst zu Select und Start
+  const placeMute = () => {
+    const immersive = gameEl.classList.contains('immersive');
+    if (immersive) gameEl.querySelector('.game-bar').insertBefore(muteBtn, document.getElementById('menu'));
+    else gameEl.querySelector('.pills').appendChild(muteBtn);
+    muteBtn.classList.toggle('bar-mute', immersive);
+  };
   const setImmersive = async (on) => {
     gameEl.classList.toggle('immersive', on);
+    placeMute();
     try {
       if (on && document.fullscreenEnabled && !document.fullscreenElement) await document.documentElement.requestFullscreen();
       if (!on && document.fullscreenElement) await document.exitFullscreen();
@@ -385,6 +393,7 @@ async function renderGame(romId) {
   // Wird das Vollbild über den Browser beendet (z. B. Zurück-Geste), auch den Leisten-Modus zurücksetzen
   const onFsChange = () => {
     if (!document.fullscreenElement && gameEl.classList.contains('immersive')) gameEl.classList.remove('immersive');
+    placeMute();
     syncFs();
   };
   document.addEventListener('fullscreenchange', onFsChange);

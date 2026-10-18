@@ -11,6 +11,8 @@
 - Ein Finger kann vom Steuerkreuz auf die nächste Taste rutschen, ohne abzuheben
 - Querformat: Steuerkreuz links, A/B rechts, Steuerung oben am Bildschirmrand. Auf niedrigen Bildschirmen liegt die Steuerung halbtransparent über dem Bild
 - Hochformat: Das Bild sitzt oben, die Steuerung nutzt den Platz darunter
+- Vollbild quer: Leiste schwebt oben rechts (Ton-Knopf dazu), Select und Start liegen unter dem Bild, das Bild ist größer
+- Tastengröße wirkt jetzt auch auf niedrigen Querformat-Bildschirmen (vorher überschrieben)
 - Einstellungen im Menü (☰): Lautstärke, Kreuz und A/B tauschen, Tastengröße, Höhe der Steuerung im Querformat, automatisches Ausblenden
 - Service Worker liefert die Header für cross-origin isolation aus (nötig für mGBA auf GitHub Pages). Die Seite lädt beim ersten Besuch einmal neu.
 
