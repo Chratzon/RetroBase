@@ -114,8 +114,8 @@ export async function getState(romId, slot) {
   return getOne('states', `${romId}:${slot}`);
 }
 
-export async function putState(romId, slot, state) {
-  const record = { key: `${romId}:${slot}`, romId, slot, savedAt: Date.now(), state };
+export async function putState(romId, slot, state, savedAt = Date.now()) {
+  const record = { key: `${romId}:${slot}`, romId, slot, savedAt, state };
   await run('states', 'readwrite', (store) => store.put(record));
   return record;
 }

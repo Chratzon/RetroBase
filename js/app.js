@@ -602,6 +602,13 @@ async function openMenu(rom) {
         </div>`;
       }).join('')}
     </div>
+    <h3 class="set-title">Sicherung</h3>
+    <p class="muted" style="margin-top:0">Spielstände als Datei auf dem Gerät sichern oder wieder einspielen.</p>
+    <div class="row">
+      <button class="btn" id="m-export">Sicherung speichern</button>
+      <button class="btn" id="m-import">Sicherung laden</button>
+      <input type="file" id="m-file" accept=".json,application/json" hidden>
+    </div>
     <div class="row">
       <button class="btn" id="m-diag">Diagnose ${isDiagOn() ? 'ausblenden' : 'einblenden'}</button>
       <button class="btn" id="m-reset">Neustart</button>
@@ -649,6 +656,13 @@ async function openMenu(rom) {
   };
   el.querySelector('#s-auto').onchange = (e) => {
     saveSettings({ autohide: e.target.checked });
+  };
+  el.querySelector('#m-export').onclick = () => exportStates(rom);
+  el.querySelector('#m-import').onclick = () => el.querySelector('#m-file').click();
+  el.querySelector('#m-file').onchange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (file) importStates(rom, file);
   };
   el.querySelector('#m-switch').onclick = () => openSwitcher(rom);
   el.querySelector('#m-library').onclick = () => {
@@ -698,6 +712,89 @@ async function loadSlot(rom, slot) {
     console.error(err);
     toast('Laden fehlgeschlagen');
   }
+}
+
+// ---------- Sicherung als Datei ----------
+
+const BACKUP_FORMAT = 'retrobase-states';
+const BACKUP_VERSION = 1;
+
+function toBase64(bytes) {
+  let bin = '';
+  const CHUNK = 0x8000; // String.fromCharCode in Blöcken, sonst Stack-Überlauf bei großen Dateien
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+
+function fromBase64(str) {
+  const bin = atob(str);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// Alle Spielstände dieses Spiels (Auto + Slots 1–3) in eine JSON-Datei schreiben.
+async function exportStates(rom) {
+  try {
+    const states = await db.listStates(rom.id);
+    if (!states.length) return toast('Keine Spielstände zum Sichern');
+    const payload = {
+      format: BACKUP_FORMAT,
+      version: BACKUP_VERSION,
+      romId: rom.id,
+      title: rom.title,
+      exportedAt: Date.now(),
+      states: states.map((s) => ({ slot: s.slot, savedAt: s.savedAt, data: toBase64(s.state) })),
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = rom.title.replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_+|_+$/g, '') || 'spiel';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeTitle}.retrobase-states.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast('Sicherung gespeichert');
+  } catch (err) {
+    console.error(err);
+    toast('Sicherung fehlgeschlagen');
+  }
+}
+
+// Eine zuvor exportierte Datei wieder in die Spielstände einspielen.
+async function importStates(rom, file) {
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    return toast('Datei konnte nicht gelesen werden');
+  }
+  if (data?.format !== BACKUP_FORMAT || !Array.isArray(data.states)) {
+    return toast('Keine RetroBase-Sicherung');
+  }
+  if (data.romId !== rom.id) {
+    return toast('Diese Sicherung gehört zu einem anderen Spiel');
+  }
+  const valid = [AUTO_SLOT, ...SLOTS];
+  let count = 0;
+  try {
+    for (const s of data.states) {
+      const slot = Number(s.slot);
+      if (!valid.includes(slot) || typeof s.data !== 'string') continue;
+      const savedAt = Number(s.savedAt) || Date.now();
+      await db.putState(rom.id, slot, fromBase64(s.data), savedAt);
+      count++;
+    }
+  } catch (err) {
+    console.error(err);
+    return toast('Sicherung konnte nicht eingespielt werden');
+  }
+  closeSheet();
+  toast(count ? `${count} Stände wiederhergestellt` : 'Keine gültigen Spielstände in der Datei');
 }
 
 // ---------- Schnellwechsel ----------
