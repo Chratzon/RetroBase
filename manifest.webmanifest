@@ -1,4 +1,5 @@
 {
+  "id": "./?app=retrobase",
   "name": "RetroBase",
   "short_name": "RetroBase",
   "description": "PWA-Retro-Emulator für Handheld-Spiele (Cube folgt)",
