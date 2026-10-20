@@ -5,6 +5,7 @@
 - Game-Boy-Core ausgetauscht: mGBA 2.5.1 (MPL-2.0) statt WasmBoy. WasmBoy ist entfernt.
 - Battery-Saves (SRAM) werden pro Spiel in IndexedDB gespeichert und beim nächsten Start wiederhergestellt
 - Automatischer Speicherstand alle 5 Minuten und beim Verlassen des Spiels, im Menü als „Automatisch“ ladbar (getrennt von den Slots 1–3)
+- PWA-Installation: Symbol als PNG (192 und 512 px) ergänzt, damit Android die App korrekt installieren kann
 - Sicherung als Datei: Spielstände eines Spiels im Menü („Sicherung speichern“) auf dem Gerät sichern und per „Sicherung laden“ wieder einspielen
 - Ton-Taste (Stummschalten) zwischen Select und Start
 - Vollbild-Taste blendet Titel und Schnellwechsel aus. Die schmale Leiste mit Vollbild, Steuerung und Menü bleibt über dem Bild. Echtes Vollbild nutzt der Browser, wo er es erlaubt

@@ -6,13 +6,15 @@
 // Cross-Origin-Opener-Policy und Cross-Origin-Embedder-Policy. GitHub Pages kann keine
 // eigenen Header setzen, deshalb ergänzt der Service Worker sie bei jeder eigenen Antwort.
 
-const CACHE_VERSION = 'retrobase-0.2.0';
+const CACHE_VERSION = 'retrobase-0.2.1';
 const SHELL = [
   './',
   './index.html',
   './styles.css',
   './manifest.webmanifest',
   './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './js/app.js',
   './js/db.js',
   './js/input.js',
