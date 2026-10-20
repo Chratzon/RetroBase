@@ -3,7 +3,7 @@
   "name": "RetroBase",
   "short_name": "RetroBase",
   "description": "PWA-Retro-Emulator für Handheld-Spiele (Cube folgt)",
-  "start_url": "./",
+  "start_url": "./?app=retrobase",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
